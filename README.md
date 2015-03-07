@@ -1,5 +1,6 @@
 # NetPong
 Network based pong game.
 
-Required Libraries:
-Bit Engine - https://github.com/jimmiebergmann/Bit-Engine
+Required libraries
+---
+ - Bit Engine - https://github.com/jimmiebergmann/Bit-Engine
