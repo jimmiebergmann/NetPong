@@ -1,28 +1,34 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Directories #
+Obj
+obj
+Lib
+lib
+Bin
+bin
+/doc/*
+!/doc/Doxyfile
 
-# Precompiled Headers
-*.gch
-*.pch
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+# Build #
+*.exp
+*.ncb
+*.suo
+*.user
+*.pdb
+*.sdf
+*.opensdf
+*.layout
+*.cbTemp
+*.depend
+*.log
+*.tlog
 
-# Fortran module files
-*.mod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+# Extra #
+*.tga
+*.png
+*.bmp
+*.wav
+*.ogg
+*.mp3
+*.zip
+*.rar
