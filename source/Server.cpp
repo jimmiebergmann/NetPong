@@ -29,6 +29,56 @@
 namespace Pong
 {
 
+	class PlayerMessageListener : public Bit::Net::UserMessageListener
+	{
+
+	public:
+
+		PlayerMessageListener( Server * p_pServer ) :
+			m_pServer( p_pServer )
+		{
+		}
+
+		virtual void HandleMessage( Bit::Net::UserMessageDecoder & p_Message )
+		{
+			// Error check the user id.
+			if( p_Message.GetUser( ) > 1 )
+			{
+				return;
+			}
+
+			// Move message
+			if( p_Message.GetName( ) == "Move" )
+			{
+				// Get the player
+				Player * pPlayer = m_pServer->m_pPlayers[ p_Message.GetUser( ) ];
+
+				// Read the direction
+				Bit::Uint8 direction = p_Message.ReadByte( );
+
+				// Move the player
+				Bit::Vector2f32 newPosition = pPlayer->Position.Get( );
+				
+				if( direction == 0 )
+				{
+					newPosition.y += 2.0f;
+				}
+				else
+				{
+					newPosition.y -= 2.0f;
+				}
+
+				// Set the new position
+				pPlayer->Position.Set( newPosition );
+			}
+
+		}
+
+		Server * m_pServer;
+
+	};
+
+
 	Server::Server( ) :
 		m_pBall( NULL )
 	{
@@ -37,12 +87,20 @@ namespace Pong
 		m_EntityManager.RegisterVariable( "Ball", "Position", &Ball::Position );
 		m_EntityManager.RegisterVariable( "Ball", "Direction", &Ball::Direction );
 
+		// Link and register player class
+		m_EntityManager.LinkEntity<Ball>( "Player" );
+		m_EntityManager.RegisterVariable( "Player", "Position", &Player::Position );
+
 		// Create a ball
 		m_pBall = reinterpret_cast<Ball *>( m_EntityManager.CreateEntityByName( "Ball" ) );
 		m_pBall->Position.Set( Bit::Vector2f32( 0.0f, 0.0f ) );
 		m_pBall->Direction.Set( Bit::Vector2f32( 1.0f, 0.0f ) );
 
-		// Create players
+		// Create the players
+		m_pPlayers[ 0 ] = reinterpret_cast<Player *>( m_EntityManager.CreateEntityByName( "Player" ) );
+		m_pPlayers[ 0 ]->Position.Set( Bit::Vector2f32( 100.0f, 300.0f ) );
+		m_pPlayers[ 1 ] = reinterpret_cast<Player *>( m_EntityManager.CreateEntityByName( "Player" ) );
+		m_pPlayers[ 1 ]->Position.Set( Bit::Vector2f32( 600.0f, 300.0f ) );
 	}
 
 	Server::~Server( )
@@ -67,9 +125,13 @@ namespace Pong
 		}
 
 		// Start the main thread
-		m_MainThread.Execute( [ this] ( )
+		m_MainThread.Execute( [ this ] ( )
 		{
 			Bit::Keyboard keyboard;
+			PlayerMessageListener playerMessageListener( this );
+
+			// Hook the user message
+			HookUserMessage( &playerMessageListener, "Move" );
 
 			// Main loop
 			while( IsRunning( ) )
@@ -81,17 +143,12 @@ namespace Pong
 				keyboard.Update( );
 
 				// Check keyboard input
-				if( keyboard.KeyIsJustReleased( Bit::Keyboard::S ) )
+				if( keyboard.KeyIsJustReleased( Bit::Keyboard::Num1 ) )
 				{
 					Stop( );
 					break;
 				}
 
-				// Update ball position and direction
-				Bit::Vector2f32 newPosition = m_pBall->Position.Get( );
-				newPosition.x += 1.0f;
-				newPosition.y += 2.0f;
-				m_pBall->Position.Set( newPosition );
 			}
 		}
 		);

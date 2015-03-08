@@ -28,6 +28,7 @@
 #include <Bit/Network/net/Server.hpp>
 #include <Bit/System/Thread.hpp>
 #include <Ball.hpp>
+#include <Player.hpp>
 
 namespace Pong
 {
@@ -41,6 +42,9 @@ namespace Pong
 	{
 
 	public:
+
+		// Friend classes
+		friend class PlayerMessageListener;
 
 		////////////////////////////////////////////////////////////////
 		/// \brief Default constructor.
@@ -79,6 +83,7 @@ namespace Pong
 		// Private variables
 		Bit::Thread		m_MainThread;
 		Ball *			m_pBall;
+		Player *		m_pPlayers[ 2 ];
 
 	};
 

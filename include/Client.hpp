@@ -27,6 +27,7 @@
 #include <Bit/Build.hpp>
 #include <Bit/Network/net/Client.hpp>
 #include <Ball.hpp>
+#include <Player.hpp>
 
 namespace Pong
 {
@@ -75,6 +76,7 @@ namespace Pong
 
 		Server *	m_pServer;
 		Ball *		m_pBall;
+		Player *	m_pPlayers[ 2 ];
 
 	};
 

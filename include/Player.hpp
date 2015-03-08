@@ -24,5 +24,27 @@
 #ifndef PONG_PLAYER_HPP
 #define PONG_PLAYER_HPP
 
+#include <Bit/Network/Net/Entity.hpp>
+#include <Bit/System/Vector2.hpp>
+
+namespace Pong
+{
+
+	////////////////////////////////////////////////////////////////
+	/// \ingroup Pong
+	/// \brief Player class
+	///
+	////////////////////////////////////////////////////////////////
+	class Player : public Bit::Net::Entity
+	{
+
+	public:
+
+		// Variables
+		Bit::Net::Variable<Bit::Vector2f32> Position;
+
+	};
+
+}
 
 #endif

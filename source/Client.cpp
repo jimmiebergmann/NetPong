@@ -39,8 +39,18 @@ namespace Pong
 		m_EntityManager.RegisterVariable( "Ball", "Position", &Ball::Position );
 		m_EntityManager.RegisterVariable( "Ball", "Direction", &Ball::Direction );
 
+		// Link and register player class
+		m_EntityManager.LinkEntity<Ball>( "Player" );
+		m_EntityManager.RegisterVariable( "Player", "Position", &Player::Position );
+
 		// Create a ball
 		m_pBall = reinterpret_cast<Ball *>( m_EntityManager.CreateEntityByName( "Ball" ) );
+
+		// Create the players
+		m_pPlayers[ 0 ] = reinterpret_cast<Player *>( m_EntityManager.CreateEntityByName( "Player" ) );
+		m_pPlayers[ 0 ]->Position.Set( Bit::Vector2f32( 100.0f, 300.0f ) );
+		m_pPlayers[ 1 ] = reinterpret_cast<Player *>( m_EntityManager.CreateEntityByName( "Player" ) );
+		m_pPlayers[ 1 ]->Position.Set( Bit::Vector2f32( 600.0f, 300.0f ) );
 	}
 
 	Client::~Client( )
@@ -89,12 +99,28 @@ namespace Pong
 			keyboard.Update( );
 
 			// Check keyboard input
-			if( keyboard.KeyIsJustReleased( Bit::Keyboard::D ) )
+			
+			
+			if( keyboard.KeyIsJustReleased( Bit::Keyboard::Num2 ) )
 			{
 				break;
 			}
+			else if( keyboard.KeyIsDown( Bit::Keyboard::W ) )
+			{
+				Bit::Net::UserMessage * pMessage = CreateUserMessage( "Move" );
+				pMessage->WriteByte( 0 );
+				pMessage->Send( );
+				delete pMessage;
+			}
+			else if( keyboard.KeyIsDown( Bit::Keyboard::S ) )
+			{
+				Bit::Net::UserMessage * pMessage = CreateUserMessage( "Move" );
+				pMessage->WriteByte( 1 );
+				pMessage->Send( );
+				delete pMessage;
+			}
 
-			std::cout << "Client: " << m_pBall->Position.Get( ).x << "   " << m_pBall->Position.Get( ).y << std::endl;
+			std::cout << "Player: " << m_pPlayers[ 0 ]->Position.Get( ).x << "   " << m_pPlayers[ 0 ]->Position.Get( ).y << std::endl;
 		}
 
 		return true;
