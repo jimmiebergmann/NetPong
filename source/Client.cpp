@@ -94,7 +94,7 @@ namespace Pong
 				break;
 			}
 
-			//std::cout << "Client: " << m_pBall->Position.Get( ).x << "   " << m_pBall->Position.Get( ).y << std::endl;
+			std::cout << "Client: " << m_pBall->Position.Get( ).x << "   " << m_pBall->Position.Get( ).y << std::endl;
 		}
 
 		return true;
