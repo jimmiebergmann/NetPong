@@ -103,7 +103,8 @@ namespace Pong
 		Bit::Semaphore					m_InitSemaphore;
 		InitMessageListener				m_InitMessageListener;
 		Bit::SimpleRenderWindow *		m_pWindow;
-		Bit::GraphicDevice *			m_pGraphicDevice;
+		Bit::Shape *					m_pPlayerShapes[ 2 ];
+		Bit::Shape *					m_pBallShape;
 
 	};
 

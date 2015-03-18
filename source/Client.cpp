@@ -22,7 +22,6 @@
 // ///////////////////////////////////////////////////////////////////////////
 
 #include <Client.hpp>
-#include <Bit/System/Keyboard.hpp>
 #include <Bit/System/Sleep.hpp>
 #include <iostream>
 #include <Bit/System/MemoryLeak.hpp>
@@ -38,8 +37,12 @@ namespace Pong
 		m_Initialized( false ),
 		m_InitMessageListener( this ),
 		m_pWindow( NULL ),
-		m_pGraphicDevice( NULL )
+		m_pBallShape( NULL )
 	{
+		// Set the player shapes to NULL
+		m_pPlayerShapes[ 0 ] = NULL;
+		m_pPlayerShapes[ 1 ] = NULL;
+
 		// Hook initialization host message
 		HookHostMessage( &m_InitMessageListener, "Initialize" );
 
@@ -107,50 +110,82 @@ namespace Pong
 
 	Bit::Bool Client::Run( )
 	{
+		// Create graphics.
 		CreateGraphics( );
 
-		Bit::Keyboard keyboard;
-
 		// Main loop
-		while( IsConnected( ) /*&& m_pWindow->IsOpen( )*/ )
+		while( IsConnected( ) && m_pWindow->IsOpen( ) )
 		{
-			// Sleep for some time
-			Bit::Sleep( Bit::Milliseconds( 10 ) );
-
-			// Update the keyboard
+			// Update the window
 			m_pWindow->Update( );
-			Bit::Event e;
-			while( m_pWindow->PollEvent( e ) )
+
+			// Handle window events.
+			Bit::Event wEvent;
+			while( m_pWindow->PollEvent( wEvent ) )
 			{
+				// Check the window envent.
+				switch( wEvent.Type )
+				{
+					// Key press events
+					case Bit::Event::KeyPressed:
+					{
+						if( wEvent.Key == Bit::Keyboard::W )
+						{
+							Bit::Net::UserMessage * pMessage = CreateUserMessage( "Move" );
+							pMessage->WriteByte( 0 );
+							pMessage->Send( );
+							delete pMessage;
+						}
+						else if( wEvent.Key == Bit::Keyboard::S )
+						{
+							Bit::Net::UserMessage * pMessage = CreateUserMessage( "Move" );
+							pMessage->WriteByte( 1 );
+							pMessage->Send( );
+							delete pMessage;
+						}
+					}
+					break;
+					case Bit::Event::KeyJustReleased:
+					{
+						if( wEvent.Key == Bit::Keyboard::Num2 )
+						{
+							m_pWindow->Close( );
+						}
+					}
+					break;
+					case Bit::Event::Closed:
+					{
+						m_pWindow->Close( );
+					}
+					break;
+
+				default:
+					break;
+				}
+
+
 			}
 
-			m_pWindow->Present( );
-
-			keyboard.Update( );
-
-			// Check keyboard input
-			if( keyboard.KeyIsJustReleased( Bit::Keyboard::Num2 ) )
+			// Check again if the window is open
+			if( m_pWindow->IsOpen( ) == false )
 			{
 				break;
 			}
-			else if( keyboard.KeyIsDown( Bit::Keyboard::W ) )
-			{
-				Bit::Net::UserMessage * pMessage = CreateUserMessage( "Move" );
-				pMessage->WriteByte( 0 );
-				pMessage->Send( );
-				delete pMessage;
-			}
-			else if( keyboard.KeyIsDown( Bit::Keyboard::S ) )
-			{
-				Bit::Net::UserMessage * pMessage = CreateUserMessage( "Move" );
-				pMessage->WriteByte( 1 );
-				pMessage->Send( );
-				delete pMessage;
-			}
 
-			std::cout << "Player: " << m_pPlayers[ m_UserId.Get( ) ]->Position.Get( ).x << "   " << m_pPlayers[ m_UserId.Get( ) ]->Position.Get( ).y << std::endl;
+			// Render the shapes
+			m_pPlayerShapes[ 0 ]->SetPosition( m_pPlayers[ 0 ]->Position.Get( ) );
+			m_pPlayerShapes[ 1 ]->SetPosition( m_pPlayers[ 1 ]->Position.Get( ) );
+			m_pWindow->Draw( m_pPlayerShapes[ 0 ] );
+			m_pWindow->Draw( m_pPlayerShapes[ 1 ] );
+
+
+			// Present the window, graphics.
+			m_pWindow->Present( );
+
+			//std::cout << "Player: " << m_pPlayers[ m_UserId.Get( ) ]->Position.Get( ).x << "   " << m_pPlayers[ m_UserId.Get( ) ]->Position.Get( ).y << std::endl;
 		}
 
+		// Destroy the graphics
 		DestroyGraphics( );
 
 		return true;
@@ -158,21 +193,32 @@ namespace Pong
 
 	Bit::Bool Client::CreateGraphics( )
 	{
+		// Create the window
 		m_pWindow = new Bit::SimpleRenderWindow( Bit::VideoMode( Bit::Vector2u32( 600, 300 ) ) );
 
+		// Create the shapes
+		for( Bit::SizeType i = 0; i < 2; i++ )
+		{
+			m_pPlayerShapes[ i ] = m_pWindow->CreateShape( true );
+			m_pPlayerShapes[ i ]->SetSize( Bit::Vector2f32( 32.0f, 32.0f ) );
+			m_pPlayerShapes[ i ]->SetPosition( m_pPlayers[ i ]->Position.Get( ) );
+		}
+		
 		return true;
 	}
 
 	void Client::DestroyGraphics( )
 	{
-		if( m_pGraphicDevice )
-		{
-			delete m_pGraphicDevice;
-			m_pGraphicDevice = NULL;
-		}
-
 		if( m_pWindow )
 		{
+			for( Bit::SizeType i = 0; i < 2; i++ )
+			{
+				if( m_pPlayerShapes[ i ] )
+				{
+					m_pWindow->DestroyShape( m_pPlayerShapes[ i ] );
+				}
+			}
+
 			delete m_pWindow;
 			m_pWindow = NULL;
 		}
