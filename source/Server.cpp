@@ -29,6 +29,7 @@
 namespace Pong
 {
 
+	// Player user message
 	class PlayerMessageListener : public Bit::Net::UserMessageListener
 	{
 
@@ -61,11 +62,11 @@ namespace Pong
 				
 				if( direction == 0 )
 				{
-					newPosition.y += 2.0f;
+					newPosition.y += 2.0f + ( 2.0f * p_Message.GetUser( ) );
 				}
 				else
 				{
-					newPosition.y -= 2.0f;
+					newPosition.y -= 2.0f + ( 2.0f * p_Message.GetUser( ) );
 				}
 
 				// Set the new position
@@ -159,6 +160,22 @@ namespace Pong
 
 	void Server::OnConnection( const Bit::Uint16 p_UserId )
 	{
+		// Create message and filter
+		Bit::Net::HostMessage * pMessage = CreateHostMessage( "Initialize" );
+		Bit::Net::HostRecipientFilter * pFilter = CreateRecipientFilter( );
+
+		// Add the receiver.
+		pFilter->AddUser( p_UserId );
+
+		// Add the user id to the message
+		pMessage->WriteInt( static_cast<Bit::Int32>( p_UserId ) );
+
+		// Send the message
+		pMessage->Send( pFilter );
+
+		// Clean up the poitners
+		delete pFilter;
+		delete pMessage;
 	}
 		
 	void Server::OnDisconnection( const Bit::Uint16 p_UserId )

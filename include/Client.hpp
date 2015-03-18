@@ -26,8 +26,11 @@
 
 #include <Bit/Build.hpp>
 #include <Bit/Network/net/Client.hpp>
+#include <Bit/Window/SimpleRenderWindow.hpp>
+#include <Bit/Graphics/GraphicDevice.hpp>
 #include <Ball.hpp>
 #include <Player.hpp>
+#include <InitMessageListener.hpp>
 
 namespace Pong
 {
@@ -44,6 +47,9 @@ namespace Pong
 	{
 
 	public:
+
+		// Friend classes
+		friend class InitMessageListener;
 
 		////////////////////////////////////////////////////////////////
 		/// \brief Default constructor.
@@ -74,9 +80,30 @@ namespace Pong
 
 	private:
 
-		Server *	m_pServer;
-		Ball *		m_pBall;
-		Player *	m_pPlayers[ 2 ];
+		// Private functions
+
+		////////////////////////////////////////////////////////////////
+		/// \brief Create graphics
+		///
+		////////////////////////////////////////////////////////////////
+		Bit::Bool CreateGraphics( );
+
+		////////////////////////////////////////////////////////////////
+		/// \brief Destroy graphics
+		///
+		////////////////////////////////////////////////////////////////
+		void DestroyGraphics( );
+
+		// Private variables
+		Server *						m_pServer;
+		Ball *							m_pBall;
+		Player *						m_pPlayers[ 2 ];
+		Bit::ThreadValue<Bit::Uint16>	m_UserId;
+		Bit::ThreadValue<Bit::Bool>		m_Initialized;
+		Bit::Semaphore					m_InitSemaphore;
+		InitMessageListener				m_InitMessageListener;
+		Bit::SimpleRenderWindow *		m_pWindow;
+		Bit::GraphicDevice *			m_pGraphicDevice;
 
 	};
 

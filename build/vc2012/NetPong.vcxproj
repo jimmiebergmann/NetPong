@@ -61,7 +61,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>bit-system-s-d.lib;bit-graphics-s-d.lib;bit-window-s-d.lib;bit-network-s-d.lib;bit-audio-s-d.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bit-system-s-d.lib;bit-graphics-s-d.lib;bit-window-s-d.lib;bit-network-s-d.lib;bit-audio-s-d.lib;wsock32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -84,6 +84,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\Ball.cpp" />
     <ClCompile Include="..\..\source\Client.cpp" />
+    <ClCompile Include="..\..\source\InitMessageListener.cpp" />
     <ClCompile Include="..\..\source\Main.cpp" />
     <ClCompile Include="..\..\source\Player.cpp" />
     <ClCompile Include="..\..\source\Server.cpp" />
@@ -91,6 +92,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\Ball.hpp" />
     <ClInclude Include="..\..\include\Client.hpp" />
+    <ClInclude Include="..\..\include\InitMessageListener.hpp" />
     <ClInclude Include="..\..\include\Player.hpp" />
     <ClInclude Include="..\..\include\Server.hpp" />
   </ItemGroup>

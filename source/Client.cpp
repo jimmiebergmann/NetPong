@@ -30,10 +30,19 @@
 namespace Pong
 {
 
+	// Client class
 	Client::Client( ) :
 		m_pServer( NULL ),
-		m_pBall( NULL )
+		m_pBall( NULL ),
+		m_UserId( 0 ),
+		m_Initialized( false ),
+		m_InitMessageListener( this ),
+		m_pWindow( NULL ),
+		m_pGraphicDevice( NULL )
 	{
+		// Hook initialization host message
+		HookHostMessage( &m_InitMessageListener, "Initialize" );
+
 		// Link and register ball class
 		m_EntityManager.LinkEntity<Ball>( "Ball" );
 		m_EntityManager.RegisterVariable( "Ball", "Position", &Ball::Position );
@@ -67,6 +76,7 @@ namespace Pong
 							const Bit::Uint16 p_Port,
 							const Bit::Time & p_Timeout )
 	{
+		m_Initialized.Set( false );
 
 		// Connect to the server
 		Bit::Net::Client::eStatus status;
@@ -79,6 +89,17 @@ namespace Pong
 			return false;
 		}
 
+		// Wait for the initialize message from the server
+		m_InitSemaphore.Wait( p_Timeout );
+
+		// Check if we received the initialize message
+		if( m_Initialized.Get( ) == false )
+		{
+			return false;
+		}
+
+		std::cout << "User id: " << m_UserId.Get( ) << std::endl;
+
 		// Succeeded to connect
 		m_pServer = p_pServer;
 		return true;
@@ -86,21 +107,28 @@ namespace Pong
 
 	Bit::Bool Client::Run( )
 	{
+		CreateGraphics( );
 
 		Bit::Keyboard keyboard;
 
 		// Main loop
-		while( IsConnected( ) )
+		while( IsConnected( ) /*&& m_pWindow->IsOpen( )*/ )
 		{
 			// Sleep for some time
 			Bit::Sleep( Bit::Milliseconds( 10 ) );
 
 			// Update the keyboard
+			m_pWindow->Update( );
+			Bit::Event e;
+			while( m_pWindow->PollEvent( e ) )
+			{
+			}
+
+			m_pWindow->Present( );
+
 			keyboard.Update( );
 
 			// Check keyboard input
-			
-			
 			if( keyboard.KeyIsJustReleased( Bit::Keyboard::Num2 ) )
 			{
 				break;
@@ -120,10 +148,34 @@ namespace Pong
 				delete pMessage;
 			}
 
-			std::cout << "Player: " << m_pPlayers[ 0 ]->Position.Get( ).x << "   " << m_pPlayers[ 0 ]->Position.Get( ).y << std::endl;
+			std::cout << "Player: " << m_pPlayers[ m_UserId.Get( ) ]->Position.Get( ).x << "   " << m_pPlayers[ m_UserId.Get( ) ]->Position.Get( ).y << std::endl;
 		}
 
+		DestroyGraphics( );
+
 		return true;
+	}
+
+	Bit::Bool Client::CreateGraphics( )
+	{
+		m_pWindow = new Bit::SimpleRenderWindow( Bit::VideoMode( Bit::Vector2u32( 600, 300 ) ) );
+
+		return true;
+	}
+
+	void Client::DestroyGraphics( )
+	{
+		if( m_pGraphicDevice )
+		{
+			delete m_pGraphicDevice;
+			m_pGraphicDevice = NULL;
+		}
+
+		if( m_pWindow )
+		{
+			delete m_pWindow;
+			m_pWindow = NULL;
+		}
 	}
 
 }
