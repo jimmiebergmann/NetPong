@@ -42,6 +42,7 @@ namespace Pong
 
 		// Variables
 		Bit::Net::Variable<Bit::Vector2f32> Position;
+		Bit::Net::Variable<Bit::Vector2f32> Size;
 
 	};
 

@@ -48,21 +48,21 @@ namespace Pong
 
 		// Link and register ball class
 		m_EntityManager.LinkEntity<Ball>( "Ball" );
-		m_EntityManager.RegisterVariable( "Ball", "Position", &Ball::Position );
-		m_EntityManager.RegisterVariable( "Ball", "Direction", &Ball::Direction );
+		m_EntityManager.RegisterVariable( "Ball", "Position",	&Ball::Position );
+		m_EntityManager.RegisterVariable( "Ball", "Size",		&Ball::Size );
+		m_EntityManager.RegisterVariable( "Ball", "Direction",	&Ball::Direction );
 
 		// Link and register player class
-		m_EntityManager.LinkEntity<Ball>( "Player" );
+		m_EntityManager.LinkEntity<Player>( "Player" );
 		m_EntityManager.RegisterVariable( "Player", "Position", &Player::Position );
+		m_EntityManager.RegisterVariable( "Player", "Size",		&Player::Size );
 
 		// Create a ball
 		m_pBall = reinterpret_cast<Ball *>( m_EntityManager.CreateEntityByName( "Ball" ) );
 
 		// Create the players
 		m_pPlayers[ 0 ] = reinterpret_cast<Player *>( m_EntityManager.CreateEntityByName( "Player" ) );
-		m_pPlayers[ 0 ]->Position.Set( Bit::Vector2f32( 100.0f, 300.0f ) );
 		m_pPlayers[ 1 ] = reinterpret_cast<Player *>( m_EntityManager.CreateEntityByName( "Player" ) );
-		m_pPlayers[ 1 ]->Position.Set( Bit::Vector2f32( 600.0f, 300.0f ) );
 	}
 
 	Client::~Client( )
@@ -163,7 +163,6 @@ namespace Pong
 					break;
 				}
 
-
 			}
 
 			// Check again if the window is open
@@ -173,11 +172,13 @@ namespace Pong
 			}
 
 			// Render the shapes
-			m_pPlayerShapes[ 0 ]->SetPosition( m_pPlayers[ 0 ]->Position.Get( ) );
-			m_pPlayerShapes[ 1 ]->SetPosition( m_pPlayers[ 1 ]->Position.Get( ) );
-			m_pWindow->Draw( m_pPlayerShapes[ 0 ] );
-			m_pWindow->Draw( m_pPlayerShapes[ 1 ] );
-
+			for( Bit::SizeType i = 0; i < 2; i++ )
+			{
+				m_pPlayerShapes[ i ]->SetPosition( m_pPlayers[ i ]->Position.Get( ) );
+				m_pWindow->Draw( m_pPlayerShapes[ i ] );
+			}
+			m_pBallShape->SetPosition( m_pBall->Position.Get( ) );
+			m_pWindow->Draw( m_pBallShape );
 
 			// Present the window, graphics.
 			m_pWindow->Present( );
@@ -200,9 +201,13 @@ namespace Pong
 		for( Bit::SizeType i = 0; i < 2; i++ )
 		{
 			m_pPlayerShapes[ i ] = m_pWindow->CreateShape( true );
-			m_pPlayerShapes[ i ]->SetSize( Bit::Vector2f32( 32.0f, 32.0f ) );
 			m_pPlayerShapes[ i ]->SetPosition( m_pPlayers[ i ]->Position.Get( ) );
+			m_pPlayerShapes[ i ]->SetSize( m_pPlayers[ i ]->Size.Get( ) );
 		}
+
+		m_pBallShape = m_pWindow->CreateShape( true );
+		m_pBallShape->SetPosition( m_pBall->Position.Get( ) );
+		m_pBallShape->SetSize( m_pBall->Size.Get( ) );
 		
 		return true;
 	}
@@ -218,6 +223,7 @@ namespace Pong
 					m_pWindow->DestroyShape( m_pPlayerShapes[ i ] );
 				}
 			}
+			m_pWindow->DestroyShape( m_pBallShape );
 
 			delete m_pWindow;
 			m_pWindow = NULL;

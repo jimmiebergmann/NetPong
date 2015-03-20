@@ -40,8 +40,34 @@ namespace Pong
 			return;
 		}
 
+		// Error check the message size
+		if( p_Message.GetMessageSize( ) < 4 )
+		{
+			return;
+		}
+		
 		// Read the user id
 		Bit::Int32 userId = p_Message.ReadInt( );
+
+		/*// Read players positions and sizes
+		Bit::Vector2f32 position;
+		Bit::Vector2f32 size;
+
+		for( Bit::SizeType i = 0; i < 2; i++ )
+		{
+			position.x = p_Message.ReadFloat( );
+			position.y = p_Message.ReadFloat( );
+			size.x = p_Message.ReadFloat( );
+			size.y = p_Message.ReadFloat( );
+			m_pClient->m_pPlayers[ i ]->Position.Set( position );
+			m_pClient->m_pPlayers[ i ]->Size.Set( size );
+		}
+		position.x = p_Message.ReadFloat( );
+		position.y = p_Message.ReadFloat( );
+		size.x = p_Message.ReadFloat( );
+		size.y = p_Message.ReadFloat( );
+		m_pClient->m_pBall->Position.Set( position );
+		m_pClient->m_pBall->Size.Set( size );*/
 
 		// Error check the user id
 		if( userId < 0 || userId > 1 )

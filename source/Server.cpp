@@ -85,23 +85,28 @@ namespace Pong
 	{
 		// Link and register ball class
 		m_EntityManager.LinkEntity<Ball>( "Ball" );
-		m_EntityManager.RegisterVariable( "Ball", "Position", &Ball::Position );
-		m_EntityManager.RegisterVariable( "Ball", "Direction", &Ball::Direction );
+		m_EntityManager.RegisterVariable( "Ball", "Position",	&Ball::Position );
+		m_EntityManager.RegisterVariable( "Ball", "Size",		&Ball::Size );
+		m_EntityManager.RegisterVariable( "Ball", "Direction",	&Ball::Direction );
 
 		// Link and register player class
-		m_EntityManager.LinkEntity<Ball>( "Player" );
+		m_EntityManager.LinkEntity<Player>( "Player" );
 		m_EntityManager.RegisterVariable( "Player", "Position", &Player::Position );
+		m_EntityManager.RegisterVariable( "Player", "Size",		&Player::Size );
 
 		// Create a ball
 		m_pBall = reinterpret_cast<Ball *>( m_EntityManager.CreateEntityByName( "Ball" ) );
-		m_pBall->Position.Set( Bit::Vector2f32( 0.0f, 0.0f ) );
+		m_pBall->Position.Set( Bit::Vector2f32( 300.0f, 150.0f ) );
+		m_pBall->Size.Set( Bit::Vector2f32( 20.0f, 20.0f ) );
 		m_pBall->Direction.Set( Bit::Vector2f32( 1.0f, 0.0f ) );
 
 		// Create the players
 		m_pPlayers[ 0 ] = reinterpret_cast<Player *>( m_EntityManager.CreateEntityByName( "Player" ) );
-		m_pPlayers[ 0 ]->Position.Set( Bit::Vector2f32( 100.0f, 300.0f ) );
+		m_pPlayers[ 0 ]->Position.Set( Bit::Vector2f32( 50.0f, 150.0f ) );
+		m_pPlayers[ 0 ]->Size.Set( Bit::Vector2f32( 20.0f, 64.0f ) );
 		m_pPlayers[ 1 ] = reinterpret_cast<Player *>( m_EntityManager.CreateEntityByName( "Player" ) );
-		m_pPlayers[ 1 ]->Position.Set( Bit::Vector2f32( 600.0f, 300.0f ) );
+		m_pPlayers[ 1 ]->Position.Set( Bit::Vector2f32( 550.0f, 150.0f ) );
+		m_pPlayers[ 1 ]->Size.Set( Bit::Vector2f32( 20.0f, 64.0f ) );
 	}
 
 	Server::~Server( )
@@ -169,7 +174,19 @@ namespace Pong
 
 		// Add the user id to the message
 		pMessage->WriteInt( static_cast<Bit::Int32>( p_UserId ) );
-
+/*
+		for( Bit::SizeType i = 0; i < 2; i++ )
+		{
+			pMessage->WriteFloat( m_pPlayers[ i ]->Position.Get( ).x );
+			pMessage->WriteFloat( m_pPlayers[ i ]->Position.Get( ).y );
+			pMessage->WriteFloat( m_pPlayers[ i ]->Size.Get( ).x );
+			pMessage->WriteFloat( m_pPlayers[ i ]->Size.Get( ).y );
+		}
+		pMessage->WriteFloat( m_pBall->Position.Get( ).x );
+		pMessage->WriteFloat( m_pBall->Position.Get( ).y );
+		pMessage->WriteFloat( m_pBall->Size.Get( ).x );
+		pMessage->WriteFloat( m_pBall->Size.Get( ).y );
+		*/
 		// Send the message
 		pMessage->Send( pFilter );
 
