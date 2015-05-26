@@ -32,6 +32,17 @@ namespace Pong
 
 	////////////////////////////////////////////////////////////////
 	/// \ingroup Pong
+	/// \brief Player direction class.
+	///
+	////////////////////////////////////////////////////////////////
+	enum eDirection
+	{
+		Up,
+		Down
+	};
+
+	////////////////////////////////////////////////////////////////
+	/// \ingroup Pong
 	/// \brief Player class
 	///
 	////////////////////////////////////////////////////////////////
@@ -40,9 +51,16 @@ namespace Pong
 
 	public:
 
+		// Constructor.
+		Player();
+
 		// Variables
 		Bit::Net::Variable<Bit::Vector2f32> Position;
 		Bit::Net::Variable<Bit::Vector2f32> Size;
+
+		// Server side.
+		bool			IsMoving;
+		eDirection		Direction;
 
 	};
 

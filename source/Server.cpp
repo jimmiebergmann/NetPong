@@ -22,8 +22,9 @@
 // ///////////////////////////////////////////////////////////////////////////
 
 #include <Server.hpp>
-#include <Bit/System/Keyboard.hpp>
+#include <iostream>
 #include <Bit/System/Sleep.hpp>
+#include <Bit/System/Timestep.hpp>
 #include <Bit/System/MemoryLeak.hpp>
 
 namespace Pong
@@ -55,22 +56,16 @@ namespace Pong
 				Player * pPlayer = m_pServer->m_pPlayers[ p_Message.GetUser( ) ];
 
 				// Read the direction
-				Bit::Uint8 direction = p_Message.ReadByte( );
+				eDirection direction = static_cast<eDirection>(p_Message.ReadByte());
 
-				// Move the player
-				Bit::Vector2f32 newPosition = pPlayer->Position.Get( );
-				
-				if( direction == 0 )
-				{
-					newPosition.y += 2.0f + ( 2.0f * p_Message.GetUser( ) );
-				}
-				else
-				{
-					newPosition.y -= 2.0f + ( 2.0f * p_Message.GetUser( ) );
-				}
-
-				// Set the new position
-				pPlayer->Position.Set( newPosition );
+				// Set direction and if the player is moving
+				pPlayer->Direction = direction;
+				pPlayer->IsMoving = true;
+			}
+			else if (p_Message.GetName() == "Stop")
+			{
+				Player * pPlayer = m_pServer->m_pPlayers[p_Message.GetUser()];
+				pPlayer->IsMoving = false;
 			}
 
 		}
@@ -137,30 +132,71 @@ namespace Pong
 			PlayerMessageListener playerMessageListener( this );
 
 			// Hook the user message
-			HookUserMessage( &playerMessageListener, "Move" );
+			HookUserMessage(&playerMessageListener, "Move");
+			HookUserMessage(&playerMessageListener, "Stop");
+
+			// Turn the main update function into a timestep function.
+			Bit::Time updateTime = Bit::Seconds( 1.0f / 30.0f );
+			Bit::Timestep timestep;
 
 			// Main loop
 			while( IsRunning( ) )
 			{
-				// Sleep for some time
-				Bit::Sleep( Bit::Milliseconds( 10 ) );
-
-				// Update the keyboard
-				keyboard.Update( );
-
-				// Check keyboard input
-				if( keyboard.KeyIsJustReleased( Bit::Keyboard::Num1 ) )
+				// Execute the timestep.
+				timestep.Execute( updateTime, [ this ] ( )
 				{
-					Stop( );
-					break;
-				}
+					// Update the keyboard
+					m_Keyboard.Update( );
 
+					// Check keyboard input
+					if( m_Keyboard.KeyIsJustReleased( Bit::Keyboard::Num1 ) )
+					{
+						Stop( );
+					}
+
+					// Update the players
+					for (Bit::SizeType i = 0; i < 2; i++)
+					{
+						// Get the player
+						Player * pPlayer = m_pPlayers[i];
+
+						// Check if the player is moving.
+						if (pPlayer->IsMoving)
+						{
+							Bit::Vector2f32 newPosition = pPlayer->Position.Get();
+							if (pPlayer->Direction == eDirection::Up)
+							{
+								newPosition.y += 1.0f;
+							}
+							else
+							{
+								newPosition.y -= 1.0f;
+							}
+
+							// Set the position
+							pPlayer->Position.Set(newPosition);
+						}
+					}
+
+					// Update the ball
+					Bit::Vector2f32 ballPos = m_pBall->Position.Get( );
+					ballPos.x -= 2.0f;
+					m_pBall->Position.Set( ballPos );
+
+
+
+				} );
 			}
 		}
 		);
 	
 		// Succeeded
 		return true;
+	}
+
+	void Server::MainUpdate( )
+	{
+		
 	}
 
 	void Server::OnConnection( const Bit::Uint16 p_UserId )
@@ -174,19 +210,7 @@ namespace Pong
 
 		// Add the user id to the message
 		pMessage->WriteInt( static_cast<Bit::Int32>( p_UserId ) );
-/*
-		for( Bit::SizeType i = 0; i < 2; i++ )
-		{
-			pMessage->WriteFloat( m_pPlayers[ i ]->Position.Get( ).x );
-			pMessage->WriteFloat( m_pPlayers[ i ]->Position.Get( ).y );
-			pMessage->WriteFloat( m_pPlayers[ i ]->Size.Get( ).x );
-			pMessage->WriteFloat( m_pPlayers[ i ]->Size.Get( ).y );
-		}
-		pMessage->WriteFloat( m_pBall->Position.Get( ).x );
-		pMessage->WriteFloat( m_pBall->Position.Get( ).y );
-		pMessage->WriteFloat( m_pBall->Size.Get( ).x );
-		pMessage->WriteFloat( m_pBall->Size.Get( ).y );
-		*/
+
 		// Send the message
 		pMessage->Send( pFilter );
 
@@ -197,6 +221,7 @@ namespace Pong
 		
 	void Server::OnDisconnection( const Bit::Uint16 p_UserId )
 	{
+		std::cout << "Client disconnected." << std::endl;
 	}
 
 }

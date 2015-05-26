@@ -127,19 +127,21 @@ namespace Pong
 				switch( wEvent.Type )
 				{
 					// Key press events
-					case Bit::Event::KeyPressed:
+					case Bit::Event::KeyJustPressed:
 					{
 						if( wEvent.Key == Bit::Keyboard::W )
 						{
+							// Pre-store the messages??
 							Bit::Net::UserMessage * pMessage = CreateUserMessage( "Move" );
-							pMessage->WriteByte( 0 );
+							pMessage->WriteByte( eDirection::Up );
 							pMessage->Send( );
 							delete pMessage;
 						}
 						else if( wEvent.Key == Bit::Keyboard::S )
 						{
+							// Pre-store the messages??
 							Bit::Net::UserMessage * pMessage = CreateUserMessage( "Move" );
-							pMessage->WriteByte( 1 );
+							pMessage->WriteByte( eDirection::Down );
 							pMessage->Send( );
 							delete pMessage;
 						}
@@ -147,7 +149,23 @@ namespace Pong
 					break;
 					case Bit::Event::KeyJustReleased:
 					{
-						if( wEvent.Key == Bit::Keyboard::Num2 )
+
+						if (wEvent.Key == Bit::Keyboard::W)
+						{
+
+							// Pre-store the messages??
+							Bit::Net::UserMessage * pMessage = CreateUserMessage("Stop");
+							pMessage->Send();
+							delete pMessage;
+						}
+						else if (wEvent.Key == Bit::Keyboard::S)
+						{
+							// Pre-store the messages??
+							Bit::Net::UserMessage * pMessage = CreateUserMessage("Stop");
+							pMessage->Send();
+							delete pMessage;
+						}
+						else if( wEvent.Key == Bit::Keyboard::Num2 )
 						{
 							m_pWindow->Close( );
 						}
@@ -175,10 +193,10 @@ namespace Pong
 			for( Bit::SizeType i = 0; i < 2; i++ )
 			{
 				m_pPlayerShapes[ i ]->SetPosition( m_pPlayers[ i ]->Position.Get( ) );
-				m_pWindow->Draw( m_pPlayerShapes[ i ] );
+				m_pWindow->Draw(m_pPlayerShapes[i], Bit::PrimitiveMode::TriangleStrip);
 			}
 			m_pBallShape->SetPosition( m_pBall->Position.Get( ) );
-			m_pWindow->Draw( m_pBallShape );
+			m_pWindow->Draw(m_pBallShape, Bit::PrimitiveMode::TriangleStrip);
 
 			// Present the window, graphics.
 			m_pWindow->Present( );
@@ -200,12 +218,12 @@ namespace Pong
 		// Create the shapes
 		for( Bit::SizeType i = 0; i < 2; i++ )
 		{
-			m_pPlayerShapes[ i ] = m_pWindow->CreateShape( true );
+			m_pPlayerShapes[ i ] = m_pWindow->CreateRectangleShape( );
 			m_pPlayerShapes[ i ]->SetPosition( m_pPlayers[ i ]->Position.Get( ) );
 			m_pPlayerShapes[ i ]->SetSize( m_pPlayers[ i ]->Size.Get( ) );
 		}
 
-		m_pBallShape = m_pWindow->CreateShape( true );
+		m_pBallShape = m_pWindow->CreateRectangleShape(); 
 		m_pBallShape->SetPosition( m_pBall->Position.Get( ) );
 		m_pBallShape->SetSize( m_pBall->Size.Get( ) );
 		

@@ -27,6 +27,7 @@
 #include <Bit/Build.hpp>
 #include <Bit/Network/net/Server.hpp>
 #include <Bit/System/Thread.hpp>
+#include <Bit/System/Keyboard.hpp>
 #include <Ball.hpp>
 #include <Player.hpp>
 
@@ -64,6 +65,12 @@ namespace Pong
 		////////////////////////////////////////////////////////////////
 		Bit::Bool Host( const Bit::Uint16 p_Port );
 
+		////////////////////////////////////////////////////////////////
+		/// \brief Main update function, timestepped function.
+		///
+		////////////////////////////////////////////////////////////////
+		void MainUpdate( );
+
 	protected:
 
 		////////////////////////////////////////////////////////////////
@@ -84,6 +91,7 @@ namespace Pong
 		Bit::Thread		m_MainThread;
 		Ball *			m_pBall;
 		Player *		m_pPlayers[ 2 ];
+		Bit::Keyboard	m_Keyboard;
 
 	};
 

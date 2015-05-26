@@ -21,3 +21,15 @@
 //    source distribution.
 // ///////////////////////////////////////////////////////////////////////////
 
+#include <Player.hpp>
+
+
+namespace Pong
+{
+
+	Player::Player() :
+		IsMoving(false)
+	{
+	}
+
+}
