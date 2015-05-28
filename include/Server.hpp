@@ -28,6 +28,7 @@
 #include <Bit/Network/net/Server.hpp>
 #include <Bit/System/Thread.hpp>
 #include <Bit/System/Keyboard.hpp>
+#include <Bit/System/Phys2/Scene.hpp>
 #include <Ball.hpp>
 #include <Player.hpp>
 
@@ -88,10 +89,12 @@ namespace Pong
 	private:
 
 		// Private variables
-		Bit::Thread		m_MainThread;
-		Ball *			m_pBall;
-		Player *		m_pPlayers[ 2 ];
-		Bit::Keyboard	m_Keyboard;
+		Bit::Thread			m_MainThread;
+		Ball *				m_pBall;
+		Player *			m_pPlayers[ 2 ];
+		Bit::Keyboard		m_Keyboard;
+		Bit::Phys2::Scene	m_Scene;
+		Bit::Phys2::Body *	m_pBodies[ 3 ];
 
 	};
 

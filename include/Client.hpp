@@ -98,7 +98,7 @@ namespace Pong
 		Server *						m_pServer;
 		Ball *							m_pBall;
 		Player *						m_pPlayers[ 2 ];
-		Bit::ThreadValue<Bit::Uint16>	m_UserId;
+		//Bit::ThreadValue<Bit::Uint16>	m_UserId;
 		Bit::ThreadValue<Bit::Bool>		m_Initialized;
 		Bit::Semaphore					m_InitSemaphore;
 		InitMessageListener				m_InitMessageListener;

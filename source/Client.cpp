@@ -33,7 +33,7 @@ namespace Pong
 	Client::Client( ) :
 		m_pServer( NULL ),
 		m_pBall( NULL ),
-		m_UserId( 0 ),
+		//m_UserId( 0 ),
 		m_Initialized( false ),
 		m_InitMessageListener( this ),
 		m_pWindow( NULL ),
@@ -49,6 +49,7 @@ namespace Pong
 		// Link and register ball class
 		m_EntityManager.LinkEntity<Ball>( "Ball" );
 		m_EntityManager.RegisterVariable( "Ball", "Position",	&Ball::Position );
+		m_EntityManager.RegisterVariable( "Ball", "Rotation",	&Ball::Rotation);
 		m_EntityManager.RegisterVariable( "Ball", "Size",		&Ball::Size );
 		m_EntityManager.RegisterVariable( "Ball", "Direction",	&Ball::Direction );
 
@@ -79,11 +80,11 @@ namespace Pong
 							const Bit::Uint16 p_Port,
 							const Bit::Time & p_Timeout )
 	{
-		m_Initialized.Set( false );
+		//m_Initialized.Set( false );
 
 		// Connect to the server
 		Bit::Net::Client::eStatus status;
-		status = Connect( p_Address, p_Port, p_Timeout );
+		status = Connect( p_Address, p_Port, p_Timeout, "NetPong" );
 
 		// Failed to connect
 		if( status != Bit::Net::Client::Succeeded )
@@ -93,15 +94,15 @@ namespace Pong
 		}
 
 		// Wait for the initialize message from the server
-		m_InitSemaphore.Wait( p_Timeout );
+		//m_InitSemaphore.Wait( p_Timeout );
 
 		// Check if we received the initialize message
-		if( m_Initialized.Get( ) == false )
+		/*if( m_Initialized.Get( ) == false )
 		{
 			return false;
 		}
-
-		std::cout << "User id: " << m_UserId.Get( ) << std::endl;
+		*/
+		//std::cout << "User id: " << m_UserId.Get( ) << std::endl;
 
 		// Succeeded to connect
 		m_pServer = p_pServer;
@@ -112,6 +113,10 @@ namespace Pong
 	{
 		// Create graphics.
 		CreateGraphics( );
+
+		// Capture the lapsed time.
+		Bit::Timer lapsedTime;
+		lapsedTime.Start();
 
 		// Main loop
 		while( IsConnected( ) && m_pWindow->IsOpen( ) )
@@ -154,14 +159,14 @@ namespace Pong
 						{
 
 							// Pre-store the messages??
-							Bit::Net::UserMessage * pMessage = CreateUserMessage("Stop");
+							Bit::Net::UserMessage * pMessage = CreateUserMessage("StopMove");
 							pMessage->Send();
 							delete pMessage;
 						}
 						else if (wEvent.Key == Bit::Keyboard::S)
 						{
 							// Pre-store the messages??
-							Bit::Net::UserMessage * pMessage = CreateUserMessage("Stop");
+							Bit::Net::UserMessage * pMessage = CreateUserMessage("StopMove");
 							pMessage->Send();
 							delete pMessage;
 						}
@@ -192,17 +197,22 @@ namespace Pong
 			// Render the shapes
 			for( Bit::SizeType i = 0; i < 2; i++ )
 			{
-				m_pPlayerShapes[ i ]->SetPosition( m_pPlayers[ i ]->Position.Get( ) );
-				m_pWindow->Draw(m_pPlayerShapes[i], Bit::PrimitiveMode::TriangleStrip);
+				m_pPlayerShapes[i]->SetPosition(m_pPlayers[i]->Position.Get() * 100.0f);
+				m_pWindow->Draw(m_pPlayerShapes[i], Bit::PrimitiveMode::LineStrip);
 			}
-			m_pBallShape->SetPosition( m_pBall->Position.Get( ) );
-			m_pWindow->Draw(m_pBallShape, Bit::PrimitiveMode::TriangleStrip);
+			m_pBallShape->SetPosition(m_pBall->Position.Get() * 100.0f);
+			m_pBallShape->SetRotation(Bit::Radians(m_pBall->Rotation.Get()));
+			m_pWindow->Draw(m_pBallShape, Bit::PrimitiveMode::LineStrip);
 
 			// Present the window, graphics.
 			m_pWindow->Present( );
 
 			//std::cout << "Player: " << m_pPlayers[ m_UserId.Get( ) ]->Position.Get( ).x << "   " << m_pPlayers[ m_UserId.Get( ) ]->Position.Get( ).y << std::endl;
 		}
+
+		lapsedTime.Stop();
+		std::cout << "Ran game for " << lapsedTime.GetTime().AsSeconds() << " seconds.\n";
+
 
 		// Destroy the graphics
 		DestroyGraphics( );
@@ -219,13 +229,13 @@ namespace Pong
 		for( Bit::SizeType i = 0; i < 2; i++ )
 		{
 			m_pPlayerShapes[ i ] = m_pWindow->CreateRectangleShape( );
-			m_pPlayerShapes[ i ]->SetPosition( m_pPlayers[ i ]->Position.Get( ) );
-			m_pPlayerShapes[ i ]->SetSize( m_pPlayers[ i ]->Size.Get( ) );
+			m_pPlayerShapes[ i ]->SetPosition(m_pPlayers[i]->Position.Get() * 100.0f);
+			m_pPlayerShapes[i]->SetSize(m_pPlayers[i]->Size.Get() * 100.0f);
 		}
 
-		m_pBallShape = m_pWindow->CreateRectangleShape(); 
-		m_pBallShape->SetPosition( m_pBall->Position.Get( ) );
-		m_pBallShape->SetSize( m_pBall->Size.Get( ) );
+		m_pBallShape = m_pWindow->CreateCircleShape(30); 
+		m_pBallShape->SetPosition(m_pBall->Position.Get() * 100.0f);
+		m_pBallShape->SetSize( m_pBall->Size.Get( ) * 100.0f );
 		
 		return true;
 	}

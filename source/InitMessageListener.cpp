@@ -35,7 +35,7 @@ namespace Pong
 	void InitMessageListener::HandleMessage( Bit::Net::HostMessageDecoder & p_Message )
 	{
 		// Ignore the message if already initialized.
-		if( m_pClient->m_Initialized.Get( ) == true )
+		/*if( m_pClient->m_Initialized.Get( ) == true )
 		{
 			return;
 		}
@@ -61,7 +61,7 @@ namespace Pong
 
 		// Set the initialized flag and release the semaphore
 		m_pClient->m_Initialized.Set( true );
-		m_pClient->m_InitSemaphore.Release( );
+		m_pClient->m_InitSemaphore.Release( );*/
 	}
 
 }

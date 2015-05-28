@@ -88,6 +88,6 @@ int CloseApplication( )
 	}
 
 	std::cout << "Cleaned up the application." << std::endl;
-
+	std::cin.get();
 	return 0;
 }

@@ -62,7 +62,7 @@ namespace Pong
 				pPlayer->Direction = direction;
 				pPlayer->IsMoving = true;
 			}
-			else if (p_Message.GetName() == "Stop")
+			else if (p_Message.GetName() == "StopMove")
 			{
 				Player * pPlayer = m_pServer->m_pPlayers[p_Message.GetUser()];
 				pPlayer->IsMoving = false;
@@ -80,9 +80,10 @@ namespace Pong
 	{
 		// Link and register ball class
 		m_EntityManager.LinkEntity<Ball>( "Ball" );
-		m_EntityManager.RegisterVariable( "Ball", "Position",	&Ball::Position );
-		m_EntityManager.RegisterVariable( "Ball", "Size",		&Ball::Size );
-		m_EntityManager.RegisterVariable( "Ball", "Direction",	&Ball::Direction );
+		m_EntityManager.RegisterVariable( "Ball",	"Position",		&Ball::Position);
+		m_EntityManager.RegisterVariable( "Ball",	"Rotation",		&Ball::Rotation);
+		m_EntityManager.RegisterVariable( "Ball",	"Size",			&Ball::Size );
+		m_EntityManager.RegisterVariable( "Ball",	"Direction",	&Ball::Direction );
 
 		// Link and register player class
 		m_EntityManager.LinkEntity<Player>( "Player" );
@@ -91,17 +92,17 @@ namespace Pong
 
 		// Create a ball
 		m_pBall = reinterpret_cast<Ball *>( m_EntityManager.CreateEntityByName( "Ball" ) );
-		m_pBall->Position.Set( Bit::Vector2f32( 300.0f, 150.0f ) );
-		m_pBall->Size.Set( Bit::Vector2f32( 20.0f, 20.0f ) );
+		m_pBall->Position.Set( Bit::Vector2f32( 3.0f, 1.50f ) );
+		m_pBall->Size.Set( Bit::Vector2f32( 0.20f, 0.20f ) );
 		m_pBall->Direction.Set( Bit::Vector2f32( 1.0f, 0.0f ) );
 
 		// Create the players
 		m_pPlayers[ 0 ] = reinterpret_cast<Player *>( m_EntityManager.CreateEntityByName( "Player" ) );
-		m_pPlayers[ 0 ]->Position.Set( Bit::Vector2f32( 50.0f, 150.0f ) );
-		m_pPlayers[ 0 ]->Size.Set( Bit::Vector2f32( 20.0f, 64.0f ) );
+		m_pPlayers[ 0 ]->Position.Set( Bit::Vector2f32( 0.50f, 1.50f ) );
+		m_pPlayers[ 0 ]->Size.Set( Bit::Vector2f32( 0.20f, 0.64f ) );
 		m_pPlayers[ 1 ] = reinterpret_cast<Player *>( m_EntityManager.CreateEntityByName( "Player" ) );
-		m_pPlayers[ 1 ]->Position.Set( Bit::Vector2f32( 550.0f, 150.0f ) );
-		m_pPlayers[ 1 ]->Size.Set( Bit::Vector2f32( 20.0f, 64.0f ) );
+		m_pPlayers[ 1 ]->Position.Set( Bit::Vector2f32( 5.50f, 1.50f ) );
+		m_pPlayers[1]->Size.Set(Bit::Vector2f32(0.20f, 0.64f));
 	}
 
 	Server::~Server( )
@@ -120,7 +121,7 @@ namespace Pong
 	Bit::Bool Server::Host( const Bit::Uint16 p_Port )
 	{
 		// Start the server
-		if( Start( p_Port, 2 ) == false )
+		if (Start(p_Port, 2, 24, "NetPong") == false)
 		{
 			return false;
 		}
@@ -133,18 +134,40 @@ namespace Pong
 
 			// Hook the user message
 			HookUserMessage(&playerMessageListener, "Move");
-			HookUserMessage(&playerMessageListener, "Stop");
+			HookUserMessage(&playerMessageListener, "StopMove");
+
+			// Set up the scene
+			// Create a physic shape
+			Bit::Phys2::Circle circle(m_pBall->Size.Get().x);
+			Bit::Phys2::Rectangle rectangle(Bit::Vector2f32( m_pPlayers[ 0 ]->Size.Get() ) );
+
+			// Clear and create the bodies.
+			m_Scene.Clear();
+
+			// Add players and ball bodies
+			m_pBodies[0] = m_Scene.Add(&rectangle, m_pPlayers[0]->Position.Get(), Bit::Phys2::Material(0.0f, 1.0, 0.3f, 0.1f));
+			m_pBodies[1] = m_Scene.Add(&rectangle, m_pPlayers[1]->Position.Get(), Bit::Phys2::Material(0.0f, 1.0, 0.3f, 0.1f));
+			m_pBodies[2] = m_Scene.Add(&circle, m_pBall->Position.Get(), Bit::Phys2::Material(1.0f, 1.0, 0.3f, 0.1f));
+			m_pBodies[2]->ApplyForce(Bit::Vector2f32(-0.2f, 0.0f));
+
+			// Add border bodies
+			Bit::Phys2::Rectangle borderHor(Bit::Vector2f32( 20.0f, 0.2f ));
+			m_Scene.Add(&borderHor, Bit::Vector2f32(0.0f, 0.0f), Bit::Phys2::Material(0.0f, 1.0, 0.3f, 0.1f));
+			m_Scene.Add(&borderHor, Bit::Vector2f32(0.0f, 3.0f), Bit::Phys2::Material(0.0f, 1.0, 0.3f, 0.1f));
 
 			// Turn the main update function into a timestep function.
-			Bit::Time updateTime = Bit::Seconds( 1.0f / 30.0f );
+			Bit::Time updateTime = Bit::Seconds( 1.0f / 60.0f );
 			Bit::Timestep timestep;
+
 
 			// Main loop
 			while( IsRunning( ) )
 			{
 				// Execute the timestep.
-				timestep.Execute( updateTime, [ this ] ( )
+				timestep.Execute(updateTime, [this, updateTime]()
 				{
+					m_Scene.Step(updateTime, 6, 4);
+
 					// Update the keyboard
 					m_Keyboard.Update( );
 
@@ -163,26 +186,44 @@ namespace Pong
 						// Check if the player is moving.
 						if (pPlayer->IsMoving)
 						{
-							Bit::Vector2f32 newPosition = pPlayer->Position.Get();
+							//Bit::Vector2f32 newPosition = pPlayer->Position.Get();
 							if (pPlayer->Direction == eDirection::Up)
 							{
-								newPosition.y += 1.0f;
+								// can not apply force to static objects, change position.
+								Bit::Vector2f32 newPosition = m_pBodies[i]->GetPosition();
+								newPosition.y += 2.0f * updateTime.AsSeconds();
+								m_pBodies[i]->SetPosition(newPosition);
 							}
 							else
 							{
-								newPosition.y -= 1.0f;
+								// can not apply force to static objects, change position.
+								Bit::Vector2f32 newPosition = m_pBodies[i]->GetPosition();
+								newPosition.y -= 2.0f * updateTime.AsSeconds();
+								m_pBodies[i]->SetPosition(newPosition);
 							}
 
-							// Set the position
-							pPlayer->Position.Set(newPosition);
+							
+							
 						}
+
+						// Set the position
+						pPlayer->Position.Set(m_pBodies[i]->GetPosition());
 					}
 
-					// Update the ball
-					Bit::Vector2f32 ballPos = m_pBall->Position.Get( );
-					ballPos.x -= 2.0f;
-					m_pBall->Position.Set( ballPos );
+					
 
+					if (m_pBall->Position.Get().x + m_pBall->Size.Get().x <= 0 ||
+						m_pBall->Position.Get().x - m_pBall->Size.Get().x >= 6.0f)
+					{
+						m_pBodies[2]->SetPosition(Bit::Vector2f32(3.0f, 1.50f));
+						m_pBall->Position.Set(m_pBodies[2]->GetPosition());
+					}
+					else
+					{
+						m_pBall->Position.Set(m_pBodies[2]->GetPosition());
+					}
+
+					m_pBall->Rotation.Set(m_pBodies[2]->GetOrientation().AsRadians());
 
 
 				} );
@@ -201,8 +242,10 @@ namespace Pong
 
 	void Server::OnConnection( const Bit::Uint16 p_UserId )
 	{
+		std::cout << "Client connected: " << p_UserId << std::endl;
+
 		// Create message and filter
-		Bit::Net::HostMessage * pMessage = CreateHostMessage( "Initialize" );
+		/*Bit::Net::HostMessage * pMessage = CreateHostMessage( "Initialize" );
 		Bit::Net::HostRecipientFilter * pFilter = CreateRecipientFilter( );
 
 		// Add the receiver.
@@ -216,12 +259,12 @@ namespace Pong
 
 		// Clean up the poitners
 		delete pFilter;
-		delete pMessage;
+		delete pMessage;*/
 	}
 		
 	void Server::OnDisconnection( const Bit::Uint16 p_UserId )
 	{
-		std::cout << "Client disconnected." << std::endl;
+		std::cout << "Client disconnected: " << p_UserId << std::endl;
 	}
 
 }
